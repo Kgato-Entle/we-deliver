@@ -27,7 +27,11 @@
     body{
       font-family:"Manrope",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;
       color:var(--coal);
-      background: var(--smoke);
+      /* FIX: Restored subtle background gradient */
+      background:
+        radial-gradient(1200px 600px at -10% -20%, rgba(212,175,55,.08), transparent 60%),
+        radial-gradient(1200px 600px at 110% 120%, rgba(15,20,25,.06), transparent 60%),
+        var(--smoke);
       min-height:100svh;
       overflow-x: hidden; /* Prevents horizontal scroll */
     }
@@ -56,7 +60,8 @@
       display: none; /* Mobile-first: hidden */
       position:sticky;top:0;z-index:50;
       backdrop-filter:blur(8px) saturate(1.1);
-      background:rgba(255,255,255,.92);
+      /* UPDATED: Solid background color */
+      background:var(--paper);
       border-bottom:1px solid var(--line);
     }
     /* UPDATED: Use grid for true center */
@@ -132,7 +137,8 @@
       position: sticky;
       bottom: 0;
       z-index: 50;
-      background: rgba(255, 255, 255, .95);
+      /* UPDATED: Solid background */
+      background: var(--paper);
       backdrop-filter: blur(10px) saturate(1.1);
       border-top: 1px solid var(--line);
       padding: 6px 10px 10px 10px; /* More padding at bottom for safe area */
@@ -175,6 +181,16 @@
       text-align: center;
       border: 2px solid #fff;
     }
+
+    /* NEW: Disabled state for mobile nav */
+    .n-link.disabled {
+      color: #ccc !important;
+      background: var(--paper) !important;
+      pointer-events: none;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
 
     /* ---------------- HERO ---------------- */
     /* Mobile-first: Full width with padding */
@@ -386,6 +402,13 @@
       cursor:pointer
     }
     .rcard .ph{width:92px;height:72px;border-radius:10px;background:#eee;background-size:cover;background-position:center}
+
+    /* NEW: Disabled state for popular cards */
+    .rcard.disabled {
+      opacity: 0.6;
+      pointer-events: none;
+      cursor: not-allowed;
+    }
 
     /* Cart */
     .cart{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;box-shadow:var(--shadow-sm)}
@@ -652,7 +675,7 @@
       <div>
         <!-- Operating Message -->
         <div class="operating-message" id="operating-message">
-          <h3>We're here for your deliveries!</h3>
+          <h3 id="operating-title">We're here for your deliveries!</h3>
           <p id="delivery-status">We are open for deliveries and orders during working hours and off-hours.</p>
           <div class="contact-info">
             <p><strong>Trading Hours:</strong></p>
@@ -876,14 +899,14 @@
 
       // 1. Update Operating Message Card with Sarcasm
       const deliveryStatusElement = $('#delivery-status');
-      const heroTitleElement = $('.operating-message h3');
+      const heroTitleElement = $('#operating-title');
       if (heroTitleElement && deliveryStatusElement) {
         if (isOpen) {
           heroTitleElement.textContent = "We're Open! (Fire it up!)";
-          deliveryStatusElement.textContent = "Hungry? We knew it. Get your order in before we change our minds.";
+          deliveryStatusElement.textContent = "You're hungry. We get it. Place an order before we change our minds.";
         } else {
           heroTitleElement.textContent = "We're Closed. (Obviously.)";
-          deliveryStatusElement.textContent = "Go to sleep. Or make a sandwich. We'll be back to deliver tomorrow.";
+          deliveryStatusElement.textContent = "Go to sleep. Make a sandwich. We'll be back for your hunger tomorrow.";
         }
       }
 
@@ -898,8 +921,19 @@
         browseRestaurantsButton.disabled = !isOpen;
         browseRestaurantsButton.classList.toggle('disabled', !isOpen);
       }
+      
+      // 3. Disable Popular Nearby Cards
+      $$('#quick-popular .rcard').forEach(card => {
+        card.classList.toggle('disabled', !isOpen);
+      });
+      
+      // 4. Disable Mobile Nav Links
+      $$('.nav-mobile .n-link[data-nav="restaurants"], .nav-mobile .n-link[data-nav="cart"]').forEach(link => {
+        link.classList.toggle('disabled', !isOpen);
+      });
 
-      // 3. Calculate and Update Countdown Timers
+
+      // 5. Calculate and Update Countdown Timers
       let nextEventTime = new Date(now);
       nextEventTime.setMilliseconds(0);
       let countdownMessage = "";
@@ -939,7 +973,7 @@
       // Pad with zeros
       const formattedCountdown = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 
-      // 4. Update DOM for timers
+      // 6. Update DOM for timers
       const dateTimeString = `${dateString} | ${timeString}`;
       const fullCountdownString = `${countdownMessage} ${formattedCountdown}`;
       
@@ -1033,7 +1067,7 @@
       });
       // Also attach to the other browse button
       $('#hero-browse-rest').addEventListener('click', ()=>{
-        if(!localStorage.getItem('weDeliverZone')){ _
+        if(!localStorage.getItem('weDeliverZone')){ 
           alert('Please choose your area first.');
           document.querySelector('.zone-panel')?.scrollIntoView({behavior:'smooth',block:'start'}); 
           return; 
@@ -1050,9 +1084,15 @@
         p.addEventListener('click', select);
         p.addEventListener('keydown', (e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); select(); }});
       });
+      
       // Popular quick shortcuts
       $$('#quick-popular .rcard').forEach(c=>{
         const go=()=>{
+          // NEW: Check if card is disabled
+          if (c.classList.contains('disabled')) {
+            alert("We're currently closed! Check back during our trading hours.");
+            return;
+          }
           if(!localStorage.getItem('weDeliverZone')){ 
             alert('Please choose your area first.');
             document.querySelector('.zone-panel')?.scrollIntoView({behavior:'smooth',block:'start'}); 
@@ -1214,6 +1254,13 @@
     // Listen to all nav links (desktop and mobile)
     $$('[data-nav]').forEach(n=> n.addEventListener('click', (e)=>{
       e.preventDefault();
+      
+      // NEW: Check for disabled mobile nav link
+      if (n.classList.contains('disabled')) {
+        alert("We're currently closed! Check back during our trading hours.");
+        return;
+      }
+
       const targetNav = n.dataset.nav;
       
       if(targetNav ==='restaurants' && !localStorage.getItem('weDeliverZone')){
