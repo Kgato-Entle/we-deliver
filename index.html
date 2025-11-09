@@ -1304,7 +1304,7 @@
         if (openWrapper && closeWrapper) {
             if (adminOverride === 'OPEN') {
                 openWrapper.style.display = 'none';
-                closeWrapper.style.display = 'none';
+                closeWrapper.style.display = 'block';
                 document.documentElement.style.setProperty('--admin-open-display', 'none');
                 document.documentElement.style.setProperty('--admin-close-display', 'block');
             } else if (adminOverride === 'CLOSED') {
