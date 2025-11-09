@@ -1174,11 +1174,21 @@
         </div>
 
       </div>
-      <div class="modal-footer">
+      <div class="modal-footer" id="order-modal-footer">
         <!-- UPDATED: Added Cancel button -->
         <button class="button" id="modal-cancel-btn">Cancel</button>
         <button class="button whatsapp" id="modal-send-wa" data-link="">Send to We Deliver</button>
       </div>
+      
+      <!-- NEW: Confirmation step -->
+      <div class="modal-footer" id="confirm-wa-footer" style="display: none;">
+        <button class="button" id="confirm-wa-cancel">Cancel</button>
+        <button class="button whatsapp" id="confirm-wa-open">
+          <svg class="icon" style="font-size: 20px;"><use xlink:href="#svg-whatsapp" /></svg>
+          <span>Open WhatsApp</span>
+        </button>
+      </div>
+
     </div>
   </div>
 
@@ -1235,7 +1245,7 @@
     let itemToastTimer;
     function showItemAddedToast(itemName) {
       const toast = $('#item-added-toast');
-      $('#item-added-toast-text').textContent = `Added ${itemName} to cart!`;
+      $('#item-added-toast-text').textContent = `${itemName}`;
       
       // Clear any existing timer
       if (itemToastTimer) {
@@ -1662,14 +1672,18 @@
           </div>
         `;
         // Add event listener
-        card.addEventListener('click', () => {
+        card.addEventListener('click', (e) => {
           // Check if card is disabled
           if (card.classList.contains('disabled')) {
+            e.stopPropagation(); // Stop click
+            e.preventDefault();
             showToast("We're Closed!", "Our drivers are sleeping. (Promise!). Check back during trading hours.");
             return;
           }
           // This check is redundant now but good for safety
           if(!localStorage.getItem('weDeliverZone')){ 
+            e.stopPropagation();
+            e.preventDefault();
             showToast("Where To?", "We need to know your area before we can show you popular spots. Pick one!");
             document.querySelector('.zone-panel')?.scrollIntoView({behavior:'smooth',block:'start'}); 
             return; 
@@ -1703,11 +1717,7 @@
       renderPopularRestaurants(stored); // This will show "Please select" message if stored is null
       
       // The #hero-start button is now handled by the main [data-nav] listener
-
-      // Also attach to the other browse button
-      $('#hero-browse-rest').addEventListener('click', ()=>{
-         // This button is handled by the main [data-nav] listener now
-      });
+      // The #hero-browse-rest button is also handled by the main [data-nav] listener
 
       $$('#quick-zones .pill').forEach(p=>{
         const select = ()=>{
@@ -1823,8 +1833,9 @@
       menuItems.forEach(it=>{
         const el=document.createElement('div');
         el.className='menu-item';
-        // FIX: Ensure data-restaurant attribute is correctly quoted
-        el.innerHTML=`<h3>${it.name}</h3><div class='muted'>${it.desc}</div><div class='price'>R${it.price.toFixed(2)}</div><button class='button primary' data-add='${it.name}' data-restaurant='${name}'>Add</button>`;
+        // FIX: Escape apostrophes in data-restaurant attribute
+        const escapedName = name.replace(/'/g, "&apos;");
+        el.innerHTML=`<h3>${it.name}</h3><div class='muted'>${it.desc}</div><div class='price'>R${it.price.toFixed(2)}</div><button class='button primary' data-add='${it.name}' data-restaurant='${escapedName}'>Add</button>`;
         list.appendChild(el);
       });
       
@@ -1848,8 +1859,7 @@
       const itemName = b.getAttribute('data-add');
       const itemRestaurant = b.getAttribute('data-restaurant');
       
-      // Find the item details from the master MENUS list
-      // FIX: Check ALL_RESTAURANTS for the item
+      // Find the item details from the master list
       const it = (ALL_RESTAURANTS[itemRestaurant]?.menu || []).find(x => x.name === itemName);
       if(!it) {
         console.error('Could not find item in ALL_RESTAURANTS', itemRestaurant, itemName);
@@ -1860,7 +1870,7 @@
       
       // LOGIC: Block adding from a different restaurant
       if (cartState.restaurant && cartState.restaurant !== itemRestaurant) {
-        showToast("One Place at a Time!", `Your cart is locked to ${cartState.restaurant}. You can't add items from ${itemRestaurant} until you clear your cart.`);
+        showToast("One Place at aTime!", `Your cart is locked to ${cartState.restaurant}. You can't add items from ${itemRestaurant} until you clear your cart.`);
         return;
       }
 
@@ -1879,7 +1889,7 @@
       saveCartState(cartState);
       
       // NEW: Show "Item Added" toast
-      showItemAddedToast(it.name);
+      showItemAddedToast(`Added ${it.name} to cart!`);
     });
 
     // ----- Cart -----
@@ -2027,22 +2037,30 @@
       $('#modal-preview-output').textContent = msg;
       $('#modal-send-wa').setAttribute('data-link', link); // Store link in data attribute
       $('#order-preview-modal').style.display = 'flex';
+      
+      // NEW: Hide initial footer, show confirm/cancel footer
+      $('#order-modal-footer').style.display = 'grid';
+      $('#confirm-wa-footer').style.display = 'none';
     }
     
     // Order Preview Modal close logic
     function initModal() {
       const modal = $('#order-preview-modal');
       const closeBtn = $('#modal-close-btn');
-      const cancelBtn = $('#modal-cancel-btn'); // NEW
       const sendBtn = $('#modal-send-wa');
+      
+      // NEW: Confirmation step buttons
+      const confirmFooter = $('#confirm-wa-footer');
+      const orderFooter = $('#order-modal-footer');
+      const confirmOpenBtn = $('#confirm-wa-open');
+      const confirmCancelBtn = $('#confirm-wa-cancel');
 
       const closeModal = () => {
         modal.style.display = 'none';
       };
 
-      // Close on 'X' button or 'Cancel' button
+      // Close on 'X' button
       closeBtn.addEventListener('click', closeModal);
-      cancelBtn.addEventListener('click', closeModal); // NEW
       
       // Close on overlay click
       modal.addEventListener('click', (e) => {
@@ -2051,9 +2069,25 @@
         }
       });
       
-      // Handle "Send" button click
+      // Handle "Send to We Deliver" click -> SHOWS CONFIRMATION
       sendBtn.addEventListener('click', (e) => {
-        e.preventDefault(); // Prevent default link behavior
+        e.preventDefault();
+        orderFooter.style.display = 'none';
+        confirmFooter.style.display = 'grid';
+      });
+      
+      // Handle "Cancel" from main modal
+      $('#modal-cancel-btn').addEventListener('click', closeModal);
+      
+      // Handle "Cancel" from *confirmation* step
+      confirmCancelBtn.addEventListener('click', () => {
+        // Just go back to the order summary
+        orderFooter.style.display = 'grid';
+        confirmFooter.style.display = 'none';
+      });
+      
+      // Handle FINAL "Open WhatsApp" click
+      confirmOpenBtn.addEventListener('click', () => {
         const link = sendBtn.getAttribute('data-link');
         
         // Open popup
@@ -2066,7 +2100,7 @@
         
         // NEW: Show "Check WhatsApp" toast on the success page
         setTimeout(() => {
-          showItemAddedToast("Check WhatsApp to confirm!");
+          showItemAddedToast("Order sent! Check WhatsApp to confirm.");
         }, 500);
       });
     }
@@ -2187,7 +2221,6 @@
         log(document.getElementById('cart-items-container').textContent.includes('empty')||document.getElementById('cart-items-container').children.length>=0,'Remove works');
         document.getElementById('df-name').value='Test User';
         document.getElementById('df-phone').value='0812345678';
-        /* FIX: Added missing parenthesis */
         document.getElementById('df-address').value='123 Sample Street';
         document.getElementById('place-order').click();
         log(document.getElementById('modal-preview-output').textContent.includes('Test User'),'WA message includes customer details');
