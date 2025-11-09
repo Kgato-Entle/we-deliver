@@ -126,11 +126,11 @@
     /* ---------------- NAV (Mobile) ---------------- */
     .nav-mobile {
       display: grid; /* Show on mobile */
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: 1fr 1fr 1fr;
       position: sticky;
       bottom: 0;
       z-index: 50;
-      background: var(--paper); /* White navbar */
+      background:var(--paper); /* White navbar */
       backdrop-filter: blur(10px) saturate(1.1);
       border-top: 1px solid var(--line);
       padding: 6px 10px 10px 10px; /* More padding at bottom for safe area */
@@ -202,7 +202,7 @@
     .hero-logo .icon{font-size:34px;line-height:1}
     .hero-title{font-family:"Quicksand",Manrope,system-ui;font-weight:700;font-size:clamp(28px,5vw,52px);line-height:1.06;letter-spacing:.2px;}
 
-    /* Mobile Timer Styles (Display only on Index) */
+    /* Mobile Timer (Visible only on mobile homepage) */
     .mobile-timer {
         background: var(--paper);
         border: 1px solid var(--line);
@@ -603,52 +603,57 @@
         grid-template-columns:1.05fr 1fr;
       }
       
-      /* Services and Admin on Right Column */
+      /* Desktop Ordering: Left (Primary) content always first column */
+      .hero > div:first-child { order: 1; }
+      
+      /* Right column: Slideshow, Message, Services, Admin stack vertically */
       .hero-right-column {
           display: grid;
           gap: 22px;
-          grid-template-rows: auto auto 1fr; /* Stack elements vertically */
-          /* Reset order for desktop */
-          order: initial;
+          grid-template-rows: auto auto auto 1fr; 
+          order: 2;
       }
-      .operating-message { order: 1; margin-top: 0; }
-      .hero-card { order: 2; margin-top: 0; }
-      .admin-panel { order: 3; margin-top: 0; }
+      .hero-bg { order: 1; margin-top: 0; }
+      .operating-message { order: 2; margin-top: 0; }
+      .hero-card { order: 3; margin-top: 0; }
+      .admin-panel { order: 4; margin-top: 0; }
       
-      .hero-card {
-        min-height:auto;
-        margin-top: 0; 
-      }
+      /* Services grid items */
       .hero-services {
-         grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); /* Restore desktop grid */
+         grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
       }
-      .hero-bg { margin-top: 0; }
-
-      /* Restore layout for sections */
-      .section {
-        padding: clamp(18px,4vw,34px) 0; /* Restore desktop padding */
-      }
+      
+      /* Make Admin Panel buttons hide/show */
+      #admin-open-btn-wrapper { display: var(--admin-open-display, none); }
+      #admin-close-btn-wrapper { display: var(--admin-close-display, none); }
+      
     }
       
     /* Responsive overrides for smaller layouts */
-    /* FIX: Applied mobile layout to tablet size to prevent overflow */
     @media(max-width:767px){
         .hero .grid {
             display: flex;
             flex-direction: column;
         }
+        
+        /* Left Column (Brand, Zones, Popular) */
+        .hero > div:first-child { order: 1; }
+        
+        /* Right Column (Slideshow, Message, Services, Admin) */
         .hero-right-column {
             display: flex;
             flex-direction: column;
             gap: 12px;
+            /* ORDER 2: This entire block goes BELOW the Brand/Title */
+            order: 2;
         }
-        /* Mobile Order of Elements */
-        /* These 4 elements are now stacked vertically in the right-hand column div, 
-           and the entire right-hand column div is ordered 2nd in the main grid */
+        
+        /* Rearrange elements WITHIN the right column for mobile flow: Slideshow, Message, Services, Admin */
+        /* Slideshow, Operating Message, Services, Admin */
+        .hero-bg { order: 1; margin-top: 12px; }
         .operating-message { order: 2; margin-top: 12px; }
         .hero-card { order: 3; margin-top: 0; }
         .admin-panel { order: 4; margin-top: 12px; }
-        .hero-bg { order: 1; margin-top: 12px; }
         
         .row{grid-template-columns:1fr auto;grid-template-areas:"name price" "qty remove"}
         .row > div:nth-child(1){grid-area:name}
@@ -738,7 +743,7 @@
         <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm3 8h-1.5c-.7 0-1.5.4-1.5 1.5V11h3l-.5 3h-2.5v7h-3v-7H8v-3h2.5V9.5C10.5 7.1 12.1 6 15 6h1v2z"/>
       </symbol>
       <symbol id="svg-instagram" viewBox="0 0 24 24">
-        <path d="M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.784.297-1.455.717-2.126 1.387C1.34 2.69 1.01 3.36.71 4.14.41 4.905.21 5.775.15 7.053.092 8.333.075 8.74.075 12s.015 3.667.072 4.947c.06 1.277.26 2.148.56 2.912.297.785.717 1.455 1.387 2.126 1.34 1.34 3.05 1.91 4.94 1.91s3.6-.57 4.94-1.91c.67-.67 1.09-1.34 1.387-2.126.3-.764.5-1.635.56-2.912.058-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.26-2.148-.56-2.912C21.99 3.36 21.66 2.69 21.36 2.02c-.67-.67-1.34-1.09-2.126-1.387-.764-.3-1.635-.5-2.912-.56C15.667.015 15.26 0 12 0zm0 2.16c3.203 0 3.585.012 4.85.07 1.17.055 1.805.248 2.227.415.562.217.96.477 1.382.896.42.42.68.82.896 1.382.167.422.36 1.057.413 2.227.058 1.265.07 1.646.07 4.85s-.012 3.585-.07 4.85c-.055 1.17-.248 1.805-.413 2.227-.217.562-.477.96-.896 1.382-.42.42-.82.68-1.382.896-.422.167-1.057.36-2.227.413-1.265.058-1.646.07-4.85.07s-3.585-.012-4.85-.07c-1.17-.055-1.805-.248-2.227-.413-.217-.562-.477-.96-.896-1.382-.42-.42-.68-.82-.896-1.382-.167-.422-.36-1.057-.413-2.227-.058-1.265-.07-1.646-.07-4.85s.012-3.585.07-4.85c.055-1.17.248-1.805.413-2.227.217-.562.477.96.896-1.382.42-.42.82-.68-1.382-.896.422-.167-1.057-.36-2.227-.413-1.265-.058-1.646-.07-4.85-.07zM12 6.162a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.88 1.44 1.44 0 000-2.88z"/>
+        <path d="M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.784.297-1.455.717-2.126 1.387C1.34 2.69 1.01 3.36.71 4.14.41 4.905.21 5.775.15 7.053.092 8.333.075 8.74.075 12s.015 3.667.072 4.947c.06 1.277.26 2.148.56 2.912.297.785.717 1.455 1.387 2.126 1.34 1.34 3.05 1.91 4.94 1.91s3.6-.57 4.94-1.91c.67-.67 1.09-1.34 1.387-2.126.3-.764.5-1.635.56-2.912.058-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.26-2.148-.56-2.912C21.99 3.36 21.66 2.69 21.36 2.02c-.67-.67-1.34-1.09-2.126-1.387-.764-.3-1.635-.5-2.912-.56C15.667.015 15.26 0 12 0zm0 2.16c3.203 0 3.585.012 4.85.07 1.17.055 1.805.248 2.227.415.562.217.96.477 1.382.896.42.42.68.82.896 1.382.167.422.36 1.057.413 2.227.058 1.265.07 1.646.07 4.85s-.012 3.585-.07 4.85c-.055 1.17-.248 1.805-.413 2.227-.217.562-.477.96-.896 1.382-.42.42-.82.68-1.382.896-.422.167-1.057.36-2.227.413-1.265.058-1.646.07-4.85.07zM12 6.162a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.88 1.44 1.44 0 000-2.88z"/>
       </symbol>
       <symbol id="svg-tiktok" viewBox="0 0 24 24">
         <path d="M21 4H3C1.9 4 1 4.9 1 6v12c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-4.1 11.1c-.6.2-1.2.3-1.9.3-1.6 0-3.1-.7-4.1-1.9v5.5H7V7h3.5v6.1c.3-.1.7-.2 1-.2 1.9 0 3.5 1.6 3.5 3.5 0 .5-.1 1-.3 1.4l.1.1 2.2 2.2h-3z"/>
@@ -831,63 +836,63 @@
       
       <!-- RIGHT COLUMN (Desktop only) -->
       <div class="hero-right-column">
-          <!-- Operating Message -->
-          <div class="operating-message" id="operating-message">
-            <h3>We're here for your deliveries!</h3>
-            <p id="delivery-status">We are open for deliveries and orders during working hours and off-hours.</p>
-            <div class="contact-info">
-              <p><strong>Trading Hours:</strong></p>
-              <p>Monday - Friday: 8:00 AM - 8:00 PM</p>
-              <p>Saturday - Sunday: 9:00 AM - 7:00 PM</p>
-              <p><strong>Contact Us:</strong></p>
-              <!-- Social Media Buttons -->
-              <div class="social-buttons">
-                <a href="tel:+27794573805" class="social-btn call" aria-label="Call us">
-                  <svg class="icon"><use xlink:href="#svg-phone" /></svg>
-                </a>
-                <a href="https://wa.me/27794573805" target="_blank" class="social-btn wa" aria-label="WhatsApp us">
-                  <svg class="icon"><use xlink:href="#svg-whatsapp" /></svg>
-                </a>
-                <a href="#" class="social-btn fb" aria-label="Facebook">
-                  <svg class="icon"><use xlink:href="#svg-facebook" /></svg>
-                </a>
-                <a href="#" class="social-btn ig" aria-label="Instagram">
-                  <svg class="icon"><use xlink:href="#svg-instagram" /></svg>
-                </a>
-                <a href="#" class="social-btn tk" aria-label="TikTok">
-                  <svg class="icon"><use xlink:href="#svg-tiktok" /></svg>
-                </a>
-                <a href="#" class="social-btn x" aria-label="X (Twitter)">
-                  <svg class="icon"><use xlink:href="#svg-x" /></svg>
-                </a>
-              </div>
+        <!-- Operating Message -->
+        <div class="operating-message" id="operating-message">
+          <h3>We're here for your deliveries!</h3>
+          <p id="delivery-status">We are open for deliveries and orders during working hours and off-hours.</p>
+          <div class="contact-info">
+            <p><strong>Trading Hours:</strong></p>
+            <p>Monday - Friday: 8:00 AM - 8:00 PM</p>
+            <p>Saturday - Sunday: 9:00 AM - 7:00 PM</p>
+            <p><strong>Contact Us:</strong></p>
+            <!-- Social Media Buttons -->
+            <div class="social-buttons">
+              <a href="tel:+27794573805" class="social-btn call" aria-label="Call us">
+                <svg class="icon"><use xlink:href="#svg-phone" /></svg>
+              </a>
+              <a href="https://wa.me/27794573805" target="_blank" class="social-btn wa" aria-label="WhatsApp us">
+                <svg class="icon"><use xlink:href="#svg-whatsapp" /></svg>
+              </a>
+              <a href="#" class="social-btn fb" aria-label="Facebook">
+                <svg class="icon"><use xlink:href="#svg-facebook" /></svg>
+              </a>
+              <a href="#" class="social-btn ig" aria-label="Instagram">
+                <svg class="icon"><use xlink:href="#svg-instagram" /></svg>
+              </a>
+              <a href="#" class="social-btn tk" aria-label="TikTok">
+                <svg class="icon"><use xlink:href="#svg-tiktok" /></svg>
+              </a>
+              <a href="#" class="social-btn x" aria-label="X (Twitter)">
+                <svg class="icon"><use xlink:href="#svg-x" /></svg>
+              </a>
             </div>
           </div>
+        </div>
 
-          <!-- Services grid -->
-          <div class="hero-card">
-            <div class="hero-services" aria-label="Our services">
-              <div class="svc"><div class="s-ico"><svg class="icon icon-fill"><use xlink:href="#svg-burger" /></svg></div><div class="s-name">Food</div><div class="s-desc">Restaurants & takeaways</div></div>
-              <div class="svc"><div class="s-ico"><svg class="icon icon-fill"><use xlink:href="#svg-grocery" /></svg></div><div class="s-name">Groceries</div><div class="s-desc">Quick household runs</div></div>
-              <div class="svc"><div class="s-ico"><svg class="icon icon-fill"><use xlink:href="#svg-bottle" /></svg></div><div class="s-name">Liquor</div><div class="s-desc">Local bottle stores</div></div>
-              <div class="svc"><div class="s-ico"><svg class="icon icon-fill"><use xlink:href="#svg-medicine" /></svg></div><div class="s-name">Medicine</div><div class="s-desc">Pharmacy pick‑ups</div></div>
-              <div class="svc" style="grid-column: 1 / -1;"><div class="s-ico"><svg class="icon icon-fill"><use xlink:href="#svg-scooter" /></svg></div><div class="s-name">Parcels</div><div class="s-desc">Kasi‑to‑kasi courier</div></div>
+        <!-- Services grid -->
+        <div class="hero-card">
+          <div class="hero-services" aria-label="Our services">
+            <div class="svc"><div class="s-ico"><svg class="icon icon-fill"><use xlink:href="#svg-burger" /></svg></div><div class="s-name">Food</div><div class="s-desc">Restaurants & takeaways</div></div>
+            <div class="svc"><div class="s-ico"><svg class="icon icon-fill"><use xlink:href="#svg-grocery" /></svg></div><div class="s-name">Groceries</div><div class="s-desc">Quick household runs</div></div>
+            <div class="svc"><div class="s-ico"><svg class="icon icon-fill"><use xlink:href="#svg-bottle" /></svg></div><div class="s-name">Liquor</div><div class="s-desc">Local bottle stores</div></div>
+            <div class="svc"><div class="s-ico"><svg class="icon icon-fill"><use xlink:href="#svg-medicine" /></svg></div><div class="s-name">Medicine</div><div class="s-desc">Pharmacy pick‑ups</div></div>
+            <div class="svc" style="grid-column: 1 / -1;"><div class="s-ico"><svg class="icon icon-fill"><use xlink:href="#svg-scooter" /></svg></div><div class="s-name">Parcels</div><div class="s-desc">Kasi‑to‑kasi courier</div></div>
+          </div>
+        </div>
+        
+        <!-- Admin Demo Panel -->
+        <div class="admin-panel">
+            <div class="title">Admin Demo Panel</div>
+            <div class="btn-group">
+                <div id="admin-open-btn-wrapper"><button class="button" id="admin-force-open">Force Open</button></div>
+                <div id="admin-close-btn-wrapper"><button class="button danger" id="admin-force-close">Force Close</button></div>
             </div>
-          </div>
-          
-          <!-- Admin Demo Panel -->
-          <div class="admin-panel">
-              <div class="title">Admin Demo Panel</div>
-              <div class="btn-group">
-                  <button class="button" id="admin-force-open">Force Open</button>
-                  <button class="button danger" id="admin-force-close">Force Close</button>
-              </div>
-              <div class="muted small" style="text-align: center;">Target WhatsApp: <strong id="current-wa-number"></strong></div>
-              <div class="field">
-                  <input type="tel" id="admin-wa-input" placeholder="0791234567 (10 digits)" pattern="^0\d{9}$" title="SA numbers start with 0 and have 10 digits"/>
-                  <button class="button" id="admin-set-wa">Set Number</button>
-              </div>
-          </div>
+            <div class="muted small" style="text-align: center;">Target WhatsApp: <strong id="current-wa-number"></strong></div>
+            <div class="field">
+                <input type="tel" id="admin-wa-input" placeholder="0791234567 (10 digits)" pattern="^0\d{9}$" title="SA numbers start with 0 and have 10 digits"/>
+                <button class="button" id="admin-set-wa">Set Number</button>
+            </div>
+        </div>
       </div>
     </div>
   </header>
@@ -1291,6 +1296,31 @@
             }
         });
         
+        // Admin Button Display Logic
+        const adminOverride = localStorage.getItem('weDeliver_admin_status');
+        const openWrapper = $('#admin-open-btn-wrapper');
+        const closeWrapper = $('#admin-close-btn-wrapper');
+
+        if (openWrapper && closeWrapper) {
+            if (adminOverride === 'OPEN') {
+                openWrapper.style.display = 'none';
+                closeWrapper.style.display = 'none';
+                document.documentElement.style.setProperty('--admin-open-display', 'none');
+                document.documentElement.style.setProperty('--admin-close-display', 'block');
+            } else if (adminOverride === 'CLOSED') {
+                openWrapper.style.display = 'block';
+                closeWrapper.style.display = 'none';
+                document.documentElement.style.setProperty('--admin-open-display', 'block');
+                document.documentElement.style.setProperty('--admin-close-display', 'none');
+            } else {
+                // Default display based on clock time
+                openWrapper.style.display = IS_OPEN ? 'none' : 'block';
+                closeWrapper.style.display = IS_OPEN ? 'block' : 'none';
+                document.documentElement.style.setProperty('--admin-open-display', IS_OPEN ? 'none' : 'block');
+                document.documentElement.style.setProperty('--admin-close-display', IS_OPEN ? 'block' : 'none');
+            }
+        }
+        
         // Update admin WA number display
         $('#current-wa-number').textContent = getWaNumber();
     }
@@ -1299,7 +1329,7 @@
     // ===== VIEW LOGIC & NAVIGATION =====
     // -----------------------------------------------------------
     
-    // NOTE: Moved updateCartCount function definition up for better hoisting behavior
+    // FIX: Function definition moved up to prevent ReferenceError
     function updateCartCount(){
       const count=getCart().reduce((n,i)=>n+i.qty,0);
       
@@ -1352,9 +1382,6 @@
       const view = $('#view-'+id);
       if (view) view.style.display = 'block';
 
-      // Update progress dock steps (not currently used)
-      // step(id);
-      
       // Update active state for mobile nav
       $$('.nav-mobile .n-link').forEach(n => {
         n.classList.toggle('active', n.dataset.nav === id);
@@ -1522,7 +1549,7 @@
       
       // Search functionality
       const ms=$('#menu-search');
-      if(ms){ ms.value=''; ms.oninput=()=>{
+      if(ms){ ms.value = ''; ms.oninput=()=>{
         const q=ms.value.trim().toLowerCase();
         $$('#menu-list .menu-item').forEach(card=>{
           const nameTxt=card.querySelector('h3').textContent.toLowerCase();
@@ -1539,6 +1566,7 @@
       if(!b) return;
       
       const itemName = b.getAttribute('data-name');
+      // FIX: Replace &apos; back to ' before parsing
       const itemData = JSON.parse(b.getAttribute('data-item').replace(/&apos;/g, "'"));
       
       const cart=getCart();
@@ -1715,6 +1743,10 @@
     
     // --- Order Anything (General WhatsApp) ---
     $('#order-anything-wa').addEventListener('click', ()=>{
+        if (!IS_OPEN) {
+            showToast("Slow Your Roll!", "We are currently closed, you impatient human.", true);
+            return;
+        }
         const waNumber = getWaNumber();
         const zone = getZone() || 'Zone Not Selected';
         const msg = `*WE DELIVER - GENERAL ORDER/QUERY*\n\n*Delivery Zone:* ${zone}\n\nI need help ordering something specific in my area.`;
@@ -1738,6 +1770,10 @@
       }
       
       if(targetNav ==='restaurants' && !getZone()){
+        showToast("Whoa there!", "We need to know where you are first. Pick a zone!", true);
+        return;
+      }
+      if(targetNav ==='cart' && !getZone()){
         showToast("Whoa there!", "We need to know where you are first. Pick a zone!", true);
         return;
       }
@@ -1771,14 +1807,8 @@
     $('#toast-modal-close').addEventListener('click', () => { $('#toast-modal-overlay').style.display = 'none'; });
     $('#toast-okay').addEventListener('click', () => { $('#toast-modal-overlay').style.display = 'none'; });
     
-    // Handle dynamic clicks on popular restaurants (using event delegation)
-    $('#view-index').addEventListener('click', (e) => {
-        const rcard = e.target.closest('.rcard');
-        if (rcard && !rcard.classList.contains('disabled')) {
-            const restaurantName = rcard.getAttribute('data-restaurant');
-            if(restaurantName) openMenu(restaurantName);
-        }
-    });
+    // Handle clicks on brand logo (mobile and desktop)
+    $$('.brand').forEach(brand => brand.addEventListener('click', () => show('index')));
 
 
     document.addEventListener('DOMContentLoaded',()=>{ 
@@ -1796,8 +1826,8 @@
       // Show initial view
       show('index');
     });
-
-    // Run tests if URL has ?test=1
+    
+    // --- TESTING FUNCTIONS --- (Moved to bottom)
     (function tests(){
       const q=new URLSearchParams(location.search); if(q.get('test')!=='1') return;
       const panel=document.createElement('div'); panel.id='tpanel'; panel.style.cssText='position:fixed;right:10px;bottom:10px;background:#fff;border:1px solid #ddd;padding:8px;border-radius:8px;max-width:320px;z-index:1000;font:12px/1.2 system-ui'; panel.innerHTML='<b>Dev Tests</b><div id="log"></div>'; document.body.appendChild(panel);
@@ -1863,7 +1893,7 @@
         
         // Trigger order generation (shows modal)
         document.getElementById('place-order').click();
-        log($('#modal-order-overlay').style.display === 'flex', 'Order modal appears');
+        log($('#order-modal-overlay').style.display === 'flex', 'Order modal appears');
         
         // Trigger modal confirmation (sends WA, navigates to success)
         document.getElementById('modal-send-wa').click();
